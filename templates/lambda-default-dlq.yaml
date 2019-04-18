@@ -6,6 +6,7 @@ Parameters:
   TopicName:
     Type: String
     Default: lambda-default-dlq
+    Description: Choose one in the same region and account
   IntervalHours:
     Type: Number
     Description: from once every 6 hours to once a week
