@@ -23,6 +23,8 @@ or deploy per region with this button:
 You can choose an interval (number of hours) to periodically find your new functions and add DLQs to them.
 
 Note:
-Functions need the `sqs:SendMessage`permission before a DLQ can be attached to them. In case you have such functions, a new message will be put in the DLQ stating which functions' policies you will need to update.
+Functions need the `sns:Publish`permission before a DLQ can be attached to them. In case you have such functions, a new message will be put in the DLQ stating which functions' policies you will need to update.
+
+You should do this through your own process, especially if you deployed these roles in CloudFormation so that the roles remain consistent.
 
 Also, note that this project is still experimental. Please share your experiences with the community.

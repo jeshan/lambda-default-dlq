@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: 'adds a dead letter queue to lambda functions that need it'
 
 Parameters:
-  QueueName:
+  TopicName:
     Type: String
     Default: lambda-default-dlq
   IntervalHours:
@@ -13,20 +13,15 @@ Parameters:
 
 Resources:
   Dlq:
-    Type: AWS::SQS::Queue
+    Type: AWS::SNS::Topic
     Properties:
-      QueueName: !Ref QueueName
+      TopicName: !Ref TopicName
 
   Fn:
     Type: AWS::Serverless::Function
     Properties:
       InlineCode: !Sub |
         import boto3
-        import json
-        import os
-        import re
-
-        target = os.environ['TARGET']
 
         def handler(event, context):
           print('event', event)
@@ -49,20 +44,18 @@ Resources:
               print(f'{name} already has a DLQ, skipping.')
               continue
             try:
-              result = client.update_function_configuration(FunctionName=name, DeadLetterConfig={'TargetArn': target})
+              result = client.update_function_configuration(FunctionName=name, DeadLetterConfig={'TargetArn': '${Dlq}'})
             except Exception as e:
               errors.append(name)
           if errors:
             errors = sorted(errors)
-            boto3.client('sqs').send_message(QueueUrl='${Dlq}', MessageBody=f"Functions that don't have sqs:SendMessage permission on queue ${Dlq.QueueName}: {', '.join(errors)}\n\nThey need this permission before a DLQ can be attached to them.")
+            result = boto3.client('sns').publish(TopicArn='${Dlq}', Message=f"Functions that don't have sns:Publish permission on topic ${Dlq.TopicName}: {', '.join(errors)}\n\nThey need this permission before a DLQ can be attached to them.")
+            print(result)
           return errors
       Handler: index.handler
       Runtime: python3.7
       Timeout: 300
       MemorySize: 128
-      Environment:
-        Variables:
-          TARGET: !Sub '${Dlq.Arn}'
       Policies:
         Version: 2012-10-17
         Statement:
@@ -76,8 +69,8 @@ Resources:
             Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*
           - Effect: Allow
             Action:
-              - sqs:SendMessage
-            Resource: !Sub '${Dlq.Arn}'
+              - sns:Publish
+            Resource: !Ref Dlq
       Events:
         Cw:
           Type: Schedule
