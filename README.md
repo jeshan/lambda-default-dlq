@@ -22,4 +22,7 @@ or deploy per region with this button:
 
 You can choose an interval (number of hours) to periodically find your new functions and add DLQs to them.
 
-Note that this project is still experimental. Please share your experiences with the community.
+Note:
+Functions need the `sqs:SendMessage`permission before a DLQ can be attached to them. In case you have such functions, a new message will be put in the DLQ stating which functions' policies you will need to update.
+
+Also, note that this project is still experimental. Please share your experiences with the community.
