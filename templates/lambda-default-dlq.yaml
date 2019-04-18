@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'adds a dead letter queue to lambda functions that need it'
+
+Parameters:
+  QueueName:
+    Type: String
+    Default: lambda-default-dlq
+  IntervalHours:
+    Type: Number
+    Description: from once every 6 hours to once a week
+    Default: 24
+
+Resources:
+  Dlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Ref QueueName
+
+  Fn:
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: !Sub |
+        import boto3
+        import json
+        import os
+        import re
+
+        target = os.environ['TARGET']
+
+        def handler(event, context):
+          print('event', event)
+
+          client = boto3.client('lambda')
+          params = {}
+          all_functions = []
+          while True:
+            response = client.list_functions(**params)
+            all_functions.extend(response.get('Functions', []))
+            if 'NextMarker' not in response:
+              break
+            print('paginating')
+            params['Marker'] = response['NextMarker']
+
+          errors = []
+          for fn in all_functions:
+            name = fn['FunctionName']
+            if 'TargetArn' in fn.get('DeadLetterConfig', {}):
+              print(f'{name} already has a DLQ, skipping.')
+              continue
+            try:
+              result = client.update_function_configuration(FunctionName=name, DeadLetterConfig={'TargetArn': target})
+            except Exception as e:
+              errors.append(name)
+          if errors:
+            errors = sorted(errors)
+            boto3.client('sqs').send_message(QueueUrl='${Dlq}', MessageBody=f"Functions that don't have sqs:SendMessage permission on queue ${Dlq.QueueName}: {', '.join(errors)}\n\nThey need this permission before a DLQ can be attached to them.")
+          return errors
+      Handler: index.handler
+      Runtime: python3.7
+      Timeout: 300
+      MemorySize: 128
+      Environment:
+        Variables:
+          TARGET: !Sub '${Dlq.Arn}'
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - lambda:ListFunctions
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - lambda:UpdateFunctionConfiguration
+            Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource: !Sub '${Dlq.Arn}'
+      Events:
+        Cw:
+          Type: Schedule
+          Properties:
+            Schedule: !Sub rate(${IntervalHours} hours)

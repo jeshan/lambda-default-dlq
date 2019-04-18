@@ -1,0 +1,5 @@
+template_path: lambda-default-dlq.yaml
+region: us-west-1
+
+parameters:
+  IntervalHours: '{{stack_group_config.interval_hours}}'
