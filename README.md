@@ -4,9 +4,9 @@ Regularly sets a Dead Letter Queue for all your lambda functions that need it.
 If your functions already have one, they are skipped.
 
 This will ensure that your failed lambda executions won't go unnoticed.
-You can specify a queue name or leave the default.
+You can specify a topic name or leave the default.
 
-After the stack is deployed to all your regions, you can subscribe a target like Lambda or SNS to these queues so that you can go in and investigate why you got these DLQ messages.
+After the stack is deployed to all your regions, you can subscribe a target like an email or Lambda so that you can go in and investigate why you got these DLQ messages.
 
 
 If you use [sceptre](https://github.com/cloudreach/sceptre), you can deploy this in all regions in one step with:
