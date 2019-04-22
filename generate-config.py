@@ -75,7 +75,7 @@ parameters:
 """)
     for region in regions:
         with open(f'config/app/{env}/{region}.yaml', 'w') as f:
-            f.write(f"""template_path: lambda-default-dlq.yaml
+            f.write(f"""template_path: template.yaml
 
 region: {region}
 

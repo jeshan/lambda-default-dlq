@@ -1,4 +1,4 @@
-template_path: lambda-default-dlq.yaml
+template_path: template.yaml
 
 region: ap-southeast-2
 
