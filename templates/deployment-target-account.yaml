@@ -64,12 +64,11 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub arn:aws:iam::${DeploymentAccount}:role/service-role/${ProjectName}-deployer
+              AWS: !Sub arn:aws:iam::${DeploymentAccount}:role/${ProjectName}-deployer
             Action: sts:AssumeRole
 
   DeployManagedPolicy:
     Properties:
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:
@@ -103,7 +102,6 @@ Resources:
 
   AppManagedPolicy:
     Properties:
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:
@@ -147,7 +145,6 @@ Resources:
 
   TemplateManagedPolicy:
     Properties:
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:
