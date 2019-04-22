@@ -1,30 +1,41 @@
 # lambda-default-dlq
 
-Regularly sets a Dead Letter Queue for all your lambda functions that need it.
-If your functions already have one, they are skipped.
+Regularly sends you your current balance for your various AWS accounts to a (private) Telegram group.
 
-This will ensure that your failed lambda executions won't go unnoticed.
-You can specify a topic name or leave the default.
+If needed, you can create a virtual env with `pipenv install`
 
-After the stack is deployed to all your regions, you can subscribe a target like an email or Lambda so that you can go in and investigate why you got these DLQ messages.
+The build process generates boilerplate configuration with `python generate-config.py`.
 
+Deploy this in all regions in one go with:
 
-If you use [sceptre](https://github.com/cloudreach/sceptre), you can deploy this in all regions in one step with:
+`sceptre launch -y app`
 
-`sceptre launch -y dev`
+This includes a deployment pipeline on AWS. Or deploy the pipeline manually with this button: 
 
-or deploy per region with this button: 
-
-<a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=lambda-default-dlq&templateURL=https://s3.amazonaws.com/jeshan-oss-public-files/lambda-default-dlq-template.yaml">
+<a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=lambda-default-dlq-deployment-pipeline&templateURL=https://s3.amazonaws.com/jeshan-oss-public-files/lambda-default-dlq-deployment-pipeline-template.yaml">
 <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
 </a>
 
 
-You can choose an interval (number of hours) to periodically find your new functions and add DLQs to them.
+You will need a telegram bot token and a telegram group (chat) id. Define them in us-east-1 as follows:
 
-Note:
-Functions need the `sns:Publish`permission before a DLQ can be attached to them. In case you have such functions, a new message will be put in the DLQ stating which functions' policies you will need to update.
+```bash
+aws ssm put-parameter --name bot-token --type SecureString --value $YOUR_TOKEN --region us-east-1 
+aws ssm put-parameter --name /lambda-default-dlq/chat-id --type String --value $YOUR_CHAT_ID --region us-east-1
+sceptre launch -y app
+``` 
 
-You should do this through your own process, especially if you deployed these roles in CloudFormation so that the roles remain consistent.
+## Adding private sceptre configuration
+To generate sceptre configuration for a private environment, you can run something like:
+`python generate-config.py production`
 
-Also, note that this project is still experimental. Please share your experiences with the community.
+You have the ability to provide sceptre with the necessary configuration and credentials that you will want to keep private.
+Read the buildspec for this, in particular:
+`aws s3 sync s3://${PRIVATE_BUCKET}/github.com/$REPO/master .`
+
+
+You can place your private sceptre configuration at that location in a private bucket and they will be pulled on build.
+There's a script available to send these files to S3: Edit your private bucket in `upload-private-config.sh` and run it.
+You need to create the role so that your deployment pipeline has permissions to deploy. run `python put-target-deployment-roles.py`
+Add the target account number in `config/app/${ENV}/config.yaml`.
+Then, run the pipeline. That's all what's needed for sceptre to work.

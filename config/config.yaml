@@ -1,3 +1,6 @@
 project_code: lambda-default-dlq
+region: us-east-1
 
+dlq_name: lambda-default-dlq
+events_topic_name: cloudformation-stack-events
 interval_hours: 24

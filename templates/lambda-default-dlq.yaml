@@ -11,6 +11,8 @@ Parameters:
     Type: Number
     Description: from once every 6 hours to once a week
     Default: 24
+  Role:
+    Type: String
 
 Resources:
   Dlq:
@@ -57,21 +59,7 @@ Resources:
       Runtime: python3.7
       Timeout: 300
       MemorySize: 128
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action:
-              - lambda:ListFunctions
-            Resource: '*'
-          - Effect: Allow
-            Action:
-              - lambda:UpdateFunctionConfiguration
-            Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*
-          - Effect: Allow
-            Action:
-              - sns:Publish
-            Resource: !Ref Dlq
+      Role: !Ref Role
       Events:
         Cw:
           Type: Schedule

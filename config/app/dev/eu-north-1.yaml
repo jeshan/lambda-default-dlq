@@ -1,0 +1,7 @@
+template_path: lambda-default-dlq.yaml
+
+region: eu-north-1
+
+parameters:
+  TopicName: {{stack_group_config.dlq_name}}
+  Role: !stack_output app/dev/base.yaml::FnRole
