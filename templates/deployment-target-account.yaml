@@ -6,7 +6,6 @@ Parameters:
     Type: String
   DlqName:
     Type: String
-    Default: abc
   EventsTopicName:
     Type: String
   ProjectName:
