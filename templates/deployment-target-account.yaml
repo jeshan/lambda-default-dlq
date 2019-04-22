@@ -168,6 +168,10 @@ Resources:
             Resource:
               - !Sub arn:aws:iam::${AWS::AccountId}:policy/${ProjectName}-*
           - Action:
+              - sns:CreateTopic
+              - sns:DeleteTopic
+              - sns:GetTopicAttributes
+              - sns:SetTopicAttributes
               - sns:ListTopics
             Effect: Allow
             Resource:
