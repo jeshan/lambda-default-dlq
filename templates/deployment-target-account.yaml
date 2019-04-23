@@ -48,6 +48,14 @@ Resources:
             Action:
               - sns:Publish
             Resource: !Sub arn:aws:sns:*:${AWS::AccountId}:${DlqName}
+          - Effect: Allow
+            Action:
+              - lambda:ListFunctions
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - lambda:UpdateFunctionConfiguration
+            Resource: !Sub arn:aws:lambda:*:${AWS::AccountId}:function:*
         Version: '2012-10-17'
 
   DeployerRole:
@@ -131,14 +139,6 @@ Resources:
               - events:RemoveTargets
             Effect: Allow
             Resource: !Sub arn:aws:events:*:${AWS::AccountId}:rule/${ProjectName}-*
-          - Effect: Allow
-            Action:
-              - lambda:ListFunctions
-            Resource: '*'
-          - Effect: Allow
-            Action:
-              - lambda:UpdateFunctionConfiguration
-            Resource: !Sub arn:aws:lambda:*:${AWS::AccountId}:function:*
         Version: '2012-10-17'
     Type: AWS::IAM::ManagedPolicy
 
